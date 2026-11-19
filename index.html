@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lodge Desk</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div style="min-width:0">
+      <div class="label">Lodge desk</div>
+      <h1 id="lodgeName">Your Lodge</h1>
+    </div>
+    <div class="sub" id="lodgeSub"></div>
+  </header>
+
+  <div id="statusNote" class="notice" hidden></div>
+
+  <nav class="tabs" id="tabs" aria-label="Sections"></nav>
+
+  <!-- STAY (guests + preview for staff) -->
+  <section class="pane" id="pane-stay" hidden>
+    <div class="stack">
+      <div class="card">
+        <h2>Find a room</h2>
+        <form class="f" id="findForm" style="margin-top:10px" onsubmit="return false">
+          <label class="fld">Check-in<input type="date" id="f-in"></label>
+          <label class="fld">Check-out<input type="date" id="f-out"></label>
+          <label class="fld">Guests<input type="number" id="f-guests" min="1" max="12" value="2"></label>
+        </form>
+      </div>
+      <div class="grid" id="roomGrid"></div>
+      <div class="card" id="reqCard">
+        <h2>Request this stay</h2>
+        <p class="muted small" id="reqSummary">Pick a room above to begin.</p>
+        <form class="f" id="reqForm" onsubmit="return false">
+          <label class="fld">Your name<input id="r-name" autocomplete="name"></label>
+          <label class="fld">Phone<input id="r-phone" inputmode="tel" autocomplete="tel"></label>
+          <label class="fld full">Note for the lodge (optional)<textarea id="r-note" placeholder="Late arrival, extra bed, ground floor..."></textarea></label>
+          <div class="full row"><button class="btn primary" id="r-send" type="button">Send request</button></div>
+        </form>
+        <div id="reqBlocked" class="notice" hidden></div>
+      </div>
+      <div id="myReqs" class="stack"></div>
+    </div>
+  </section>
+
+  <!-- DESK -->
+  <section class="pane" id="pane-desk" hidden>
+    <div class="stack">
+      <div class="stats" id="deskStats"></div>
+      <div class="two">
+        <div class="stack">
+          <div class="row between"><h2>Booking requests</h2></div>
+          <div id="reqList" class="stack"></div>
+          <h2 style="margin-top:6px">Arriving and in house</h2>
+          <div id="bookList" class="stack"></div>
+        </div>
+        <div class="card">
+          <h2>New booking</h2>
+          <p class="muted small">For walk-ins and phone bookings.</p>
+          <form class="f" id="nbForm" style="margin-top:10px" onsubmit="return false">
+            <label class="fld">Check-in<input type="date" id="nb-in"></label>
+            <label class="fld">Check-out<input type="date" id="nb-out"></label>
+            <label class="fld full">Room<select id="nb-room"></select></label>
+            <label class="fld">Guest name<input id="nb-name"></label>
+            <label class="fld">Phone<input id="nb-phone" inputmode="tel"></label>
+            <label class="fld">Guests<input type="number" id="nb-guests" min="1" value="2"></label>
+            <label class="fld">ID number<input id="nb-id" placeholder="Aadhaar / licence"></label>
+            <label class="fld">Advance paid (₹)<input type="number" id="nb-adv" min="0" step="1" value="0"></label>
+            <label class="fld">Paid by<select id="nb-mode"><option>Cash</option><option>UPI</option><option>Card</option><option>Bank transfer</option></select></label>
+            <div class="full row"><button class="btn primary" id="nb-save" type="button">Save booking</button><span class="small muted" id="nb-est"></span></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BILL -->
+  <section class="pane" id="pane-bill" hidden>
+    <div class="stack">
+      <div class="card">
+        <label class="fld">Booking<select id="bill-pick"></select></label>
+      </div>
+      <div id="billEmpty" class="empty">Choose a booking to see its bill. Bookings appear here once they are confirmed.</div>
+      <div id="billBody" hidden class="two">
+        <div class="stack">
+          <div class="card stack" id="billHead"></div>
+          <div class="card">
+            <h3>Charges</h3>
+            <div class="scroll"><table class="t" id="chargeTable"></table></div>
+            <form class="f" id="chargeForm" style="margin-top:12px" onsubmit="return false">
+              <label class="fld">Item<select id="c-item"><option>Food</option><option>Tea / water</option><option>Laundry</option><option>Extra bed</option><option>Transport</option><option>Other</option></select></label>
+              <label class="fld">GST on item<select id="c-gst"><option value="5">5%</option><option value="0">0%</option><option value="12">12%</option><option value="18">18%</option></select></label>
+              <label class="fld">Quantity<input type="number" id="c-qty" min="1" value="1"></label>
+              <label class="fld">Price each (₹)<input type="number" id="c-amt" min="0" step="1"></label>
+              <div class="full"><button class="btn" id="c-add" type="button">Add charge</button></div>
+            </form>
+          </div>
+          <div class="card">
+            <h3>Payments</h3>
+            <div class="scroll"><table class="t" id="payTable"></table></div>
+            <form class="f" id="payForm" style="margin-top:12px" onsubmit="return false">
+              <label class="fld">Mode<select id="p-mode"><option>Cash</option><option>UPI</option><option>Card</option><option>Bank transfer</option></select></label>
+              <label class="fld">Amount (₹)<input type="number" id="p-amt" min="0" step="1"></label>
+              <div class="full"><button class="btn" id="p-add" type="button">Record payment</button></div>
+            </form>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="card stack">
+            <h3>Bill summary</h3>
+            <div class="totals" id="totals"></div>
+            <label class="fld">Room discount (₹)<input type="number" id="b-disc" min="0" step="1"></label>
+            <div class="row"><button class="btn primary" id="b-final" type="button">Check out and issue invoice</button></div>
+          </div>
+          <div class="card stack" id="invCard" hidden>
+            <h3>Invoice</h3>
+            <div class="invoice" id="invText"></div>
+            <div class="row"><button class="btn" id="inv-copy" type="button">Copy text</button><button class="btn" id="inv-save" type="button">Save as file</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROOMS -->
+  <section class="pane" id="pane-rooms" hidden>
+    <div class="two">
+      <div class="stack"><h2>Rooms</h2><div id="roomAdmin" class="stack"></div></div>
+      <div class="card">
+        <h2 id="rf-title">Add a room</h2>
+        <form class="f" id="roomForm" style="margin-top:10px" onsubmit="return false">
+          <label class="fld">Room number<input id="rf-no"></label>
+          <label class="fld">Type<input id="rf-type" placeholder="Standard, Deluxe, Family"></label>
+          <label class="fld">Rate per night (₹)<input type="number" id="rf-rate" min="0" step="1"></label>
+          <label class="fld">Beds / sleeps<input type="number" id="rf-beds" min="1" value="2"></label>
+          <label class="fld">Floor<input type="number" id="rf-floor" value="1"></label>
+          <label class="fld">Air conditioning<select id="rf-ac"><option value="0">Non-AC</option><option value="1">AC</option></select></label>
+          <div class="full row"><button class="btn primary" id="rf-save" type="button">Save room</button><button class="btn" id="rf-clear" type="button">Clear</button></div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- REPORTS -->
+  <section class="pane" id="pane-reports" hidden>
+    <div class="stack">
+      <div class="card row between"><h2>Month report</h2><input type="month" id="rp-month" style="width:auto"></div>
+      <div class="stats" id="rpStats"></div>
+      <div class="two">
+        <div class="card stack"><h3>Collected by mode</h3><div id="rpModes" class="stack"></div></div>
+        <div class="card stack"><h3>Outstanding balances</h3><div id="rpDue" class="stack"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="pane" id="pane-settings" hidden>
+    <div class="card" style="max-width:620px">
+      <h2>Lodge details</h2>
+      <p class="muted small">These appear on every invoice.</p>
+      <form class="f" id="setForm" style="margin-top:10px" onsubmit="return false">
+        <label class="fld full">Lodge name<input id="s-name"></label>
+        <label class="fld full">Address<textarea id="s-addr"></textarea></label>
+        <label class="fld">Phone<input id="s-phone" inputmode="tel"></label>
+        <label class="fld">GSTIN<input id="s-gstin" placeholder="15 characters"></label>
+        <label class="fld">UPI ID<input id="s-upi" placeholder="name@bank"></label>
+        <label class="fld">Invoice prefix<input id="s-prefix" placeholder="INV-"></label>
+        <h3 class="full" style="margin-top:6px">Room GST by nightly rate</h3>
+        <label class="fld">No GST up to (₹)<input type="number" id="s-exempt" min="0"></label>
+        <label class="fld">Middle band up to (₹)<input type="number" id="s-mid" min="0"></label>
+        <label class="fld">Middle band GST %<input type="number" id="s-midrate" min="0" step="0.5"></label>
+        <label class="fld">Above that GST %<input type="number" id="s-highrate" min="0" step="0.5"></label>
+        <div class="full"><button class="btn primary" id="s-save" type="button">Save details</button></div>
+        <p class="full muted small" style="margin:0">The tax bands start at 5% for rates up to ₹7,500 and 18% above, with no GST up to ₹1,000. Confirm these with your accountant before issuing invoices.</p>
+      </form>
+    </div>
+  </section>
+</div>
+<div id="toast" hidden></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="js/config.js"></script>
+<script src="js/backend.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+rules_version = '2';
+
+// Paste these into Firebase console > Firestore Database > Rules.
+// Replace the email below with your staff Google accounts
+// (same list as staffEmails in js/config.js).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isStaff() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in ['owner@example.com'];
+    }
+
+    // Staff can read and write everything.
+    match /{collectionName}/{docId} {
+      allow read, write: if isStaff();
+    }
+
+    // Anyone can see the lodge details and the room list (including
+    // which dates are taken), so guests can check availability.
+    match /config/{docId} {
+      allow read: if true;
+    }
+    match /rooms/{docId} {
+      allow read: if true;
+    }
+
+    // A signed-in guest can read and write only their own requests.
+    match /requests/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['items']);
+    }
+  }
+}
